@@ -35,5 +35,10 @@ contract('Token', (accounts) => {
             const result = await token.totalSupply()
             result.toString().should.equal(totalSupply)
         })
+
+        it('assigns the total supply to the deployer', async() => {
+            const result = await token.balanceOf(accounts[0])
+            result.toString().should.equal(totalSupply)
+        })
     })
 })
