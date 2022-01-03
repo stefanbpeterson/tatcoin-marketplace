@@ -44,22 +44,41 @@ contract('Token', ([deployer, receiver]) => {
     })
 
     describe('sending tokens', () => {
-        it('transfers token balances', async () =>{
-            let balanceOf
-            // Before transfer
-            balanceOf = await token.balanceOf(receiver)
-            console.log('receiver balance before transfer', balanceOf.toString())
-            balanceOf = await token.balanceOf(deployer)
-            console.log('deployer balance before transfer', balanceOf.toString())
+        let amount
+        let result
 
-            // Transfer
-            await token.transfer(receiver, tokens(100), { from: deployer })
-
-            // After transfer
-            balanceOf = await token.balanceOf(receiver)
-            console.log('receiver balance before transfer', balanceOf.toString())
-            balanceOf = await token.balanceOf(deployer)
-            console.log('deployer balance before transfer', balanceOf.toString())
+        describe('success', async () => {
+            beforeEach(async() => {
+                amount = tokens(100)
+                // Transfer
+                result = await token.transfer(receiver, amount, { from: deployer })
+            })
+    
+            it('transfers token balances', async () =>{
+                let balanceOf
+    
+                // After transfer
+                balanceOf = await token.balanceOf(receiver)
+                balanceOf.toString().should.equal(tokens(100).toString())
+                balanceOf = await token.balanceOf(deployer)
+                balanceOf.toString().should.equal(tokens(999900).toString())
+            })
+    
+            it('emits a transfer event', async () => {
+                const log = result.logs[0]
+                log.event.should.eq('Transfer')
+                const event = log.args
+                event.from.toString().should.eq(deployer, 'from value is correct')
+                event.to.toString().should.eq(receiver, 'to value is correct')
+                event.value.toString().should.eq(amount.toString(), 'value is correct')
+            })
         })
+
+        describe('failure', async () => {
+            it('rejects insufficient balances', async () => {
+                let invalidAmount
+            })
+        })
+
     })
 })
