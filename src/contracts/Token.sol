@@ -21,11 +21,15 @@ contract Token {
     // Send tokens
     function transfer(address _to, uint256 _value) public returns (bool success) {
         require(balanceOf[msg.sender] >= _value);
+        _transfer(msg.sender, _to, _value);
+        return true;
+    }
+
+    function _transfer(address _from, address _to, uint _value) internal {
         require(_to != address(0));
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(_value);
+        balanceOf[_from] = balanceOf[_from].sub(_value);
         balanceOf[_to] = balanceOf[_to].add(_value);
         emit Transfer(msg.sender, _to, _value);
-        return true;
     }
 
     // Approve tokens
@@ -37,6 +41,10 @@ contract Token {
     }
 
     // Transfer from
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+        
+        return true;
+    }
 
     constructor() public {
         totalSupply = 1000000 * (10 ** decimals);
