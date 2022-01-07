@@ -125,7 +125,7 @@ contract('Token', ([deployer, receiver, exchange]) => {
         })
     })
 
-    describe('sending tokens', () => {
+    describe('delegated token transfers', async() => {
         let amount
         let result
 
@@ -134,7 +134,7 @@ contract('Token', ([deployer, receiver, exchange]) => {
             await token.approve(exchange, amount, { from: deployer })
         })
 
-        describe('success', async () => {
+        describe('success', async() => {
             beforeEach(async() => {
                 // Transfer
                 result = await token.transferFrom(deployer, receiver, amount, { from: exchange })
@@ -149,6 +149,11 @@ contract('Token', ([deployer, receiver, exchange]) => {
                 balanceOf = await token.balanceOf(receiver)
                 balanceOf.toString().should.equal(tokens(300).toString())
             })
+
+            it('resets the allowance', async() => {
+                const allowance = await token.allowance(deployer, exchange)
+                allowance.toString().should.equal('0')
+            })
     
             it('emits a Transfer event', async() => {
                 const log = result.logs[0]
@@ -160,21 +165,16 @@ contract('Token', ([deployer, receiver, exchange]) => {
             })
         })
 
-        describe('failure', async () => {
-            // it('rejects insufficient balances', async () => {
-            //     let invalidAmount
-            //     invalidAmount = tokens(100000000) // 100 million - greater than total supply
-            //     await token.transfer(receiver, invalidAmount, { from: deployer }).should.be.rejectedWith(EVM_REVERT)
-
-            //     // Attempt to transfer tokens when you have none
-            //     invalidAmount = tokens(100000000) // recipient has no tokens
-            //     await token.transfer(deployer, invalidAmount, { from: receiver }).should.be.rejectedWith(EVM_REVERT)
-            // })
-            // // it('rejects invalid recipients')
-            // it('rejects invalid recipients', async() => {
-            //     await token.transfer(0x0, amount, { from: deployer }).should.be.rejected
-            // })
+        describe('failure', async() => {
+            // Fails when too many tokens are attempted to be transferred
+            it('rejects insufficient balances', async () => {
+                const invalidAmount = tokens(100000000)
+                await token.transferFrom(deployer, receiver, invalidAmount, { from: exchange }).should.be.rejectedWith(EVM_REVERT)
+            })
+            // Fails if transaction recipient is invalid
+            it('rejects invalid recipients', async() => {
+                await token.transferFrom(deployer, 0x0, amount, { from: exchange }).should.be.rejected
+            })
         })
     })
-
 })
